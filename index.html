@@ -101,7 +101,7 @@
   input[type="number"], input[type="text"] { width: 9rem; font-family: var(--font-code); }
   input[type="range"] { width: 100%; accent-color: var(--leaf); }
   input[type="file"] { max-width: 100%; font: inherit; font-size: var(--step--1); }
-  .value { font-family: var(--font-code); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .value { font-family: var(--font-code); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
   .btn {
     appearance: none; font: inherit; font-weight: 700; border-radius: var(--radius);
@@ -174,7 +174,7 @@
   .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: 0.6rem; margin: 0; }
   .facts div { background: var(--paper); border-radius: 10px; padding: 0.5rem 0.8rem; min-width: 0; }
   .facts dt { font-size: var(--step--1); color: var(--ink-soft); }
-  .facts dd { margin: 0; font-family: var(--font-code); font-weight: 700; font-size: var(--step-1); overflow-wrap: anywhere; }
+  .facts dd { margin: 0; font-family: var(--font-code); font-weight: 700; font-size: var(--step-1); white-space: nowrap; }
   .facts dd small { display: block; font-size: var(--step--1); font-weight: 400; color: var(--ink-soft); }
 
   /* ---------- 色をつくる ---------- */
@@ -208,8 +208,8 @@
   .calc-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 1rem; align-items: end; }
   .calc-inputs input[type="number"] { width: 100%; }
   .steps { display: grid; gap: 0.35rem; margin: 0; padding: 0; list-style: none; font-variant-numeric: tabular-nums; }
-  .steps li { display: grid; grid-template-columns: 9rem 1fr; gap: 0.75rem; align-items: baseline; padding: 0.45rem 0.9rem; border-radius: 10px; background: var(--paper); }
-  .steps li span:first-child { color: var(--ink-soft); font-size: var(--step--1); }
+  .steps li { display: grid; grid-template-columns: 12rem 1fr; gap: 0.75rem; align-items: baseline; padding: 0.45rem 0.9rem; border-radius: 10px; background: var(--paper); }
+  .steps li span:first-child { color: var(--ink-soft); font-size: var(--step--1); white-space: nowrap; }
   .steps li strong { font-family: var(--font-code); font-size: var(--step-1); overflow-wrap: anywhere; }
   .steps li strong small { font-size: var(--step--1); font-weight: 400; color: var(--ink-soft); }
   .steps.accent li { background: var(--leaf-soft); }
@@ -236,7 +236,7 @@
   <header class="masthead">
     <p class="kicker">情報Ⅰ　情報のデジタル表現</p>
     <h1><span class="marker">画素</span>の<wbr>解剖器</h1>
-    <p class="lede">画像を，小さなマスのひとつひとつまで拡大して調べます．色のつくり方，マスの数，色の段階，データ量を変えると，写真がどう変わるか，確かめてみよう．</p>
+    <p class="lede" id="lede">画像を，小さなマスのひとつひとつまで拡大して調べます．色のつくり方，マスの数，色の段階，データ量を変えると，写真がどう変わるか，確かめてみよう．</p>
   </header>
 
   <nav class="tabs" role="tablist" aria-label="機能の切り替え">
@@ -310,7 +310,7 @@
       </div>
 
       <p class="formula">
-        8ビット × 3 ＝ <span class="eq">24ビット</span><br>
+        8ビット × 3 ＝ <span class="eq">24ビット</span>（24ビットフルカラー）<br>
         2²⁴ ＝ <span class="eq">16777216</span> 色（256 × 256 × 256．約1677万色）<br>
         FFFFFF ＝ 白，000000 ＝ 黒
       </p>
@@ -466,7 +466,7 @@
         <div class="field">
           <span class="field-label">1画素のビット数</span>
           <div class="seg" role="group" aria-label="1画素のビット数" id="d-bits">
-            <button type="button" data-bits="24" aria-pressed="true">24ビット（フルカラー．RGB各8ビット）</button>
+            <button type="button" data-bits="24" aria-pressed="true">24ビットフルカラー（RGB各8ビット）</button>
             <button type="button" data-bits="8" aria-pressed="false">8ビット（256階調のグレー）</button>
             <button type="button" data-bits="1" aria-pressed="false">1ビット（白黒）</button>
           </div>
@@ -1029,7 +1029,7 @@
     if ($("#panel-resolution").hidden) return;
     const hide = res.hide, gray = res.mode === "gray";
     $("#panel-resolution").classList.toggle("hide-num", hide);
-    $("#tab-resolution").textContent = hide ? "画像を粗くする" : "解像度と階調";
+    applyHideChrome();
     $("#res-intro").innerHTML = hide
       ? "同じ写真を，2通りのしかたで粗くして並べます．<strong>区切りの細かさ</strong>と<strong>段階の細かさ</strong>を，別々に動かしてみよう．どちらを粗くすると，どう見えるか．数字は出していません．"
       : "同じ写真を，A・B の2枚で並べて比べます．<strong>解像度</strong>（画素の数）と<strong>階調</strong>（色の段階数）を，別々に動かすと，見え方・画素の数・ビット数・データ量がどう変わるかを確かめよう．";
@@ -1063,6 +1063,7 @@
       sc.getContext("2d").putImageData(new ImageData(s.out, s.w2, s.h2), 0, 0);
       const cv = $("canvas", card);
       const { g } = prep(cv, Math.round((cv.clientWidth || 300) * img.work.h / img.work.w));
+      g.setTransform(1, 0, 0, 1, 0, 0);               // 装置画素で描く（prep の dpr 変換を戻す）
       g.imageSmoothingEnabled = s.w2 > cv.width;       // 拡大のときはぼかさない．縮めて見せるときだけなめらかにする
       if (g.imageSmoothingEnabled) g.imageSmoothingQuality = "high";
       g.drawImage(sc, 0, 0, s.w2, s.h2, 0, 0, cv.width, cv.height);
@@ -1158,17 +1159,20 @@
   const MAGS = [1, 2, 4, 8, 16, 32];
   const zs = { shape: "circle", mag: 4, cx: 49, cy: 15, grid: true };
   $("#z-mag").innerHTML = MAGS.map((m) => `<button type="button" data-mag="${m}" aria-pressed="${m === zs.mag}">${m}倍</button>`).join("");
-  function zClamp() {
+  // 表示の中心は，倍率に応じて図の内側に収めた値を描画用に使う（zs 自体は書き換えない）
+  function zView() {
     const size = GRID / zs.mag;
-    zs.cx = clamp(zs.cx, size / 2, GRID - size / 2);
-    zs.cy = clamp(zs.cy, size / 2, GRID - size / 2);
+    return { cx: clamp(zs.cx, size / 2, GRID - size / 2), cy: clamp(zs.cy, size / 2, GRID - size / 2) };
+  }
+  function zSet(cx, cy) {
+    const size = GRID / zs.mag;
+    zs.cx = clamp(cx, size / 2, GRID - size / 2); zs.cy = clamp(cy, size / 2, GRID - size / 2);
   }
   function renderZoom() {
     if ($("#panel-zoom").hidden) return;
-    zClamp();
     $$("#z-shape button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.shape === zs.shape)));
     $$("#z-mag button").forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.mag) === zs.mag)));
-    const size = GRID / zs.mag, ox = zs.cx - size / 2, oy = zs.cy - size / 2;
+    const size = GRID / zs.mag, zv = zView(), ox = zv.cx - size / 2, oy = zv.cy - size / 2;
     const f1 = (v) => String(+v.toFixed(1));
     const range = `見えている範囲：x ${f1(ox)}〜${f1(ox + size)}，y ${f1(oy)}〜${f1(oy + size)}（倍率 ${zs.mag}倍）`;
     // ラスタ
@@ -1214,23 +1218,23 @@
   $("#z-grid").addEventListener("change", (e) => { zs.grid = e.target.checked; renderZoom(); });
   $$("[data-zpan]").forEach((b) => b.addEventListener("click", () => {
     const [dx, dy] = b.dataset.zpan.split(",").map(Number), size = GRID / zs.mag;
-    zs.cx += dx * size / 4; zs.cy += dy * size / 4; renderZoom();
+    const v = zView(); zSet(v.cx + dx * size / 4, v.cy + dy * size / 4); renderZoom();
   }));
   for (const id of ["#z-raster", "#z-vector"]) {
     const cv = $(id);
     let drag = null;
-    cv.addEventListener("pointerdown", (e) => { drag = { x: e.clientX, y: e.clientY, cx: zs.cx, cy: zs.cy }; cv.setPointerCapture(e.pointerId); });
+    cv.addEventListener("pointerdown", (e) => { const v = zView(); drag = { x: e.clientX, y: e.clientY, cx: v.cx, cy: v.cy }; cv.setPointerCapture(e.pointerId); });
     cv.addEventListener("pointermove", (e) => {
       if (!drag) return;
       const unit = GRID / zs.mag / cv.getBoundingClientRect().width;
-      zs.cx = drag.cx - (e.clientX - drag.x) * unit; zs.cy = drag.cy - (e.clientY - drag.y) * unit;
+      zSet(drag.cx - (e.clientX - drag.x) * unit, drag.cy - (e.clientY - drag.y) * unit);
       renderZoom();
     });
     cv.addEventListener("pointerup", () => { drag = null; });
     cv.addEventListener("pointercancel", () => { drag = null; });
     cv.addEventListener("keydown", (e) => {
       const m = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key], size = GRID / zs.mag;
-      if (m) { e.preventDefault(); zs.cx += m[0] * size / 8; zs.cy += m[1] * size / 8; renderZoom(); }
+      if (m) { e.preventDefault(); const v = zView(); zSet(v.cx + m[0] * size / 8, v.cy + m[1] * size / 8); renderZoom(); }
       else if (e.key === "+" || e.key === "=") { zs.mag = MAGS[Math.min(MAGS.length - 1, MAGS.indexOf(zs.mag) + 1)]; renderZoom(); }
       else if (e.key === "-") { zs.mag = MAGS[Math.max(0, MAGS.indexOf(zs.mag) - 1)]; renderZoom(); }
     });
@@ -1247,9 +1251,16 @@
     const den = 2 ** pow, x = num / den;
     if (Number.isInteger(x)) return { exact: true, text: String(x) };
     if ((num * 100) % den === 0) return { exact: true, text: String(+x.toFixed(2)) };
-    const t2 = x.toFixed(2);
-    const text = +t2 === 0 ? x.toPrecision(2) : t2;
+    // 小さい値は指数表記にせず，有効数字2桁の小数で出す
+    const text = x >= 0.01 ? x.toFixed(2) : x.toFixed(Math.min(20, 1 - Math.floor(Math.log10(x))));
     return { exact: false, text, one: x >= 0.1 ? x.toFixed(1) : null };
+  }
+  // num ÷ 2^pow を，丸めずに小数で書く（2のべき乗で割るので，必ず割り切れる）
+  function exactDec(num, pow) {
+    const den = 2 ** pow, ip = Math.floor(num / den);
+    let r = num - ip * den, frac = "";
+    while (r !== 0) { r *= 10; const d = Math.floor(r / den); frac += d; r -= d * den; }
+    return frac ? `${ip}.${frac}` : String(ip);
   }
   const eqText = (d, unit) => `${d.exact ? "＝" : "≒"} ${d.text} ${unit}${d.one && d.one !== d.text ? `（小数第1位で ${d.one} ${unit}）` : ""}`;
   function factor2(n) { let k = 0; while (n % 2 === 0) { n /= 2; k++; } return [n, k]; }
@@ -1268,8 +1279,8 @@
     $("#d-steps").innerHTML = [
       row("ビット数＝横×縦×ビット", `${w} × ${h} × ${bits} ＝ ${B} ビット`),
       row("÷8 → バイト", `${B} ÷ 8 ${eqText(dBytes, "B")}`),
-      row("÷1024 → KB", `${dBytes.text} ÷ 1024 ${eqText(dKB, "KB")}`),
-      row("÷1024 → MB", `${dKB.text} ÷ 1024 ${eqText(dMB, "MB")}`),
+      row("÷1024 → KB", `${exactDec(B, 3)} ÷ 1024 ${eqText(dKB, "KB")}`),
+      row("÷1024 → MB", `${exactDec(B, 13)} ÷ 1024 ${eqText(dMB, "MB")}`),
     ].join("");
 
     // 教科書の形と，2のべき乗に分けた約分
@@ -1281,15 +1292,17 @@
     const odds = [op, ow, oh].filter((v) => v !== 1);
     const oddProd = op * ow * oh, oddTxt = odds.length ? odds.join("×") : "1";
     const pw = (n) => (n === 0 ? "" : `2${sup(n)}`);
-    let red = `${oddTxt}${N ? "×" + pw(N) : ""}÷${pw(D)}`;
+    const chain = [`${oddTxt}${N ? "×" + pw(N) : ""}÷${pw(D)}`];
+    let tail = "";
     if (N >= D) {
       const m = N - D;
-      const val = oddProd * 2 ** m;
-      red += ` ＝ ${oddProd}${m ? "×" + pw(m) : ""} ＝ ${val}`;
+      chain.push(`${oddProd}${m ? "×" + pw(m) : ""}`, String(oddProd * 2 ** m));
     } else {
-      const m = D - N, den = 2 ** m, d = decimal(oddProd, m);
-      red += ` ＝ ${oddProd}÷${pw(m)} ＝ ${oddProd}÷${den} ${d.exact ? "＝" : "≒"} ${d.text}`;
+      const m = D - N, d = decimal(oddProd, m);
+      chain.push(`${oddProd}÷${pw(m)}`, `${oddProd}÷${2 ** m}`);
+      tail = ` ${d.exact ? "＝" : "≒"} ${d.text}`;
     }
+    const red = chain.filter((t, i) => i === 0 || t !== chain[i - 1]).join(" ＝ ") + tail;
     $("#d-forms").innerHTML = [
       row("教科書の形（MB）", `${textbook} ${eqText(dMB, "MB")}`),
       row("2のべき乗に分けて約分", `<small>${factorText(w)}，${factorText(h)}${bits === 24 ? "，24÷8＝3" : bits === 8 ? "，8÷8＝1" : "，1÷8＝2⁻³"}</small><br>${red}`),
@@ -1315,8 +1328,15 @@
   }
   for (const [id, key, name] of [["#d-w", "w", "横"], ["#d-h", "h", "縦"]]) {
     const el = $(id);
+    let entry = dd[key];                                  // 欄に入ったときの値
+    el.addEventListener("focus", () => { entry = dd[key]; });
     el.addEventListener("input", () => { if (readDim(el, key, name)) renderData(); });
-    const fix = () => { if (el.value === String(dd[key])) return; if (!readDim(el, key, name)) { el.value = dd[key]; setWarn(`${name}の画素数に使えない値だったので，直前の値（${dd[key]}）に戻しました．入れられるのは1〜${MAXP}の整数です．`); } else el.value = dd[key]; renderData(); };
+    const fix = () => {
+      if (el.value === String(dd[key])) return;
+      if (readDim(el, key, name)) { el.value = dd[key]; entry = dd[key]; }
+      else { dd[key] = entry; el.value = entry; setWarn(`${name}の画素数に使えない値だったので，欄に入る前の値（${entry}）に戻しました．入れられるのは1〜${MAXP}の整数です．`); }
+      renderData();
+    };
     el.addEventListener("change", fix); el.addEventListener("blur", fix);
   }
   $("#d-bits").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; dd.bits = Number(b.dataset.bits); renderData(); });
@@ -1336,6 +1356,15 @@
   //  タブとURL
   // =====================================================================
   const tabs = $$(".tab");
+  const LEDE = "画像を，小さなマスのひとつひとつまで拡大して調べます．色のつくり方，マスの数，色の段階，データ量を変えると，写真がどう変わるか，確かめてみよう．";
+  const LEDE_HIDE = "画像を，小さなマスのひとつひとつまで拡大して調べます．色のつくり方，マスの数，色の段階，大きさを変えると，写真がどう変わるか，確かめてみよう．";
+  // 数字をかくす（導入用）のとき，画像を粗くする画面では「データ量」「解像度」「階調」の語を出さない
+  function applyHideChrome() {
+    const onRes = !$("#panel-resolution").hidden;
+    $("#lede").textContent = res.hide && onRes ? LEDE_HIDE : LEDE;
+    $("#tab-data").textContent = res.hide && onRes ? "大きさ" : "データ量";
+    $("#tab-resolution").textContent = res.hide ? "画像を粗くする" : "解像度と階調";
+  }
   function selectTab(tab, focus = true, hash) {
     tabs.forEach((t) => {
       const on = t === tab;
@@ -1343,6 +1372,7 @@
       t.tabIndex = on ? 0 : -1;
       $("#" + t.getAttribute("aria-controls")).hidden = !on;
     });
+    applyHideChrome();
     if (focus) tab.focus();
     history.replaceState(null, "", location.pathname + location.search + "#" + (hash || tab.dataset.hash));
     redraw();
@@ -1390,7 +1420,6 @@
     const t = tabOf(hash);
     selectTab(t || tabs[0], false, t ? hash : "color");
   }
-  $("#tab-resolution").textContent = res.hide ? "画像を粗くする" : "解像度と階調";
   applyHash();
   window.addEventListener("hashchange", applyHash);
 })();
