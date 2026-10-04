@@ -175,6 +175,10 @@
   .facts div { background: var(--paper); border-radius: 10px; padding: 0.5rem 0.8rem; min-width: 0; }
   .facts dt { font-size: var(--step--1); color: var(--ink-soft); }
   .facts dd { margin: 0; font-family: var(--font-code); font-weight: 700; font-size: var(--step-1); white-space: nowrap; }
+  .kinds { display: grid; gap: 0.5rem; margin: 0; }
+  .kinds div { background: var(--paper); border-radius: 10px; padding: 0.5rem 0.8rem; min-width: 0; }
+  .kinds dt { font-size: var(--step--1); color: var(--ink-soft); }
+  .kinds dd { margin: 0; font-size: var(--step--1); line-height: 1.6; overflow-wrap: anywhere; }
   .facts dd small { display: block; font-size: var(--step--1); font-weight: 400; color: var(--ink-soft); }
 
   /* ---------- 色をつくる ---------- */
@@ -264,10 +268,10 @@
           </div>
           <label class="check"><input type="checkbox" id="hex-toggle">カラーコードから調べる（解いたあとで）</label>
           <div class="field" id="hex-direct" hidden>
-            <span class="field-label">カラーコード（6桁．入れると R・G・B が変わります）</span>
+            <span class="field-label">カラーコード（6文字．入れると R・G・B が変わります）</span>
             <div class="codeline">
               <span class="hash" aria-hidden="true">#</span>
-              <input type="text" id="hex-in" maxlength="7" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="カラーコード（6桁の16進数）" value="000000">
+              <input type="text" id="hex-in" maxlength="7" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="カラーコード（6文字の16進数）" value="000000">
             </div>
             <p class="warn" id="hex-warn" aria-live="polite"></p>
           </div>
@@ -285,19 +289,19 @@
       </div>
 
       <div class="matchbox">
-        <h3>答え合わせ：めざす色コードと，いまの色を比べる</h3>
+        <h3>答え合わせ：めざすカラーコードと，いまの色を比べる</h3>
         <div class="target-row">
           <label class="field">
-            <span class="field-label">めざす色コード（6桁）</span>
-            <span class="codeline"><span class="hash" aria-hidden="true">#</span><input type="text" id="target-in" maxlength="7" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="めざす色コード（6桁の16進数）"></span>
+            <span class="field-label">めざすカラーコード（6文字）</span>
+            <span class="codeline"><span class="hash" aria-hidden="true">#</span><input type="text" id="target-in" maxlength="7" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="めざすカラーコード（6文字の16進数）"></span>
           </label>
           <div class="field">
             <span class="field-label">めざす色の見本</span>
             <div class="target-swatch" id="target-swatch" role="img" aria-label="めざす色の見本"></div>
           </div>
         </div>
-        <p class="verdict" id="match-out" aria-live="polite">めざす色コードを入れると，いまの R・G・B から作った16進数と照合できます．</p>
-        <p class="note">R・G・B に 10進数を入れると，16進数のカラーコードができます．それが，めざす色コードと同じになれば「一致」です．</p>
+        <p class="verdict" id="match-out" aria-live="polite">めざすカラーコードを入れると，いまの R・G・B から作った16進数と照合できます．</p>
+        <p class="note">R・G・B に 10進数を入れると，16進数のカラーコードができます．それが，めざすカラーコードと同じになれば「一致」です．</p>
       </div>
 
       <div class="field">
@@ -318,7 +322,7 @@
 
     <!-- ===== 画素を調べる ===== -->
     <section class="panel" id="panel-pixel" role="tabpanel" aria-labelledby="tab-pixel" hidden>
-      <p class="panel-intro">画像の一部を大きく拡大して，マスを1つずつ見ます．<strong>画素＝1マス</strong>．1つの画素は，赤・緑・青の明るさ3つ（それぞれ 0〜255）でできています．マスを押して，中身を見てみよう．</p>
+      <p class="panel-intro">画像の一部を大きく拡大して，マスを1つずつ見ます．<strong>画素（ピクセル）</strong>は，画像を構成する最小の単位で，<strong>1マス</strong>にあたります．1つの画素は，赤・緑・青の明るさ3つ（それぞれ 0〜255）でできています．マスを押して，中身を見てみよう．</p>
 
       <div class="srcbar" data-srcbar>
         <div class="field">
@@ -398,7 +402,7 @@
           <span class="field-label">色のモード（A・B 共通）</span>
           <div class="seg" role="group" aria-label="色のモード" id="mode-seg">
             <button type="button" data-mode="color" aria-pressed="true">カラー</button>
-            <button type="button" data-mode="gray" aria-pressed="false">白黒・グレー</button>
+            <button type="button" data-mode="gray" aria-pressed="false">白黒（2値）・グレースケール</button>
           </div>
         </div>
         <label class="check" style="align-self:end"><input type="checkbox" id="hide-num">数字をかくす（導入で使う．教員用）</label>
@@ -443,12 +447,20 @@
           <p class="note">小さい格子の画素に描いたものを，拡大して見ています．</p>
           <div class="chart"><canvas class="drag" id="z-raster" tabindex="0" aria-label="ラスタ形式で描いた図形の拡大．なぞると見る場所が動きます"></canvas></div>
           <p class="formula" id="z-raster-info"></p>
+          <dl class="kinds">
+            <div><dt>描くソフトウェア</dt><dd>ペイント系ソフトウェア：画素ごとに色を塗って描く．例：ペイント，GIMP，Photoshop など</dd></div>
+            <div><dt>代表的なファイル形式</dt><dd>JPEG（.jpg）・PNG（.png）・GIF（.gif）など</dd></div>
+          </dl>
         </article>
         <article class="card">
           <div class="card-head"><span class="badge">2</span><h2>ベクタ形式</h2></div>
           <p class="note">座標と数式から，その倍率でその場で描き直しています．</p>
           <div class="chart"><canvas class="drag" id="z-vector" tabindex="0" aria-label="ベクタ形式で描いた図形の拡大．なぞると見る場所が動きます"></canvas></div>
           <p class="formula" id="z-vector-info"></p>
+          <dl class="kinds">
+            <div><dt>描くソフトウェア</dt><dd>ドロー系ソフトウェア：線や円などの図形を座標で置いて描く．例：Illustrator，Inkscape，PowerPoint の図形 など</dd></div>
+            <div><dt>代表的なファイル形式</dt><dd>SVG（.svg）など</dd></div>
+          </dl>
         </article>
       </div>
     </section>
@@ -469,8 +481,8 @@
           <span class="field-label">1画素のビット数</span>
           <div class="seg" role="group" aria-label="1画素のビット数" id="d-bits">
             <button type="button" data-bits="24" aria-pressed="true">24ビットフルカラー（RGB各8ビット）</button>
-            <button type="button" data-bits="8" aria-pressed="false">8ビット（256階調のグレー）</button>
-            <button type="button" data-bits="1" aria-pressed="false">1ビット（白黒）</button>
+            <button type="button" data-bits="8" aria-pressed="false">8ビット（グレースケール．256階調）</button>
+            <button type="button" data-bits="1" aria-pressed="false">1ビット（白黒画像．2階調）</button>
           </div>
         </div>
       </div>
@@ -703,17 +715,20 @@
     redraw();
   }
 
+  let pickSeq = 0;                                         // 見本・自分の画像のうち，最後に選んだものを勝たせる
   // 画像の読み込み（長い辺を800画素に縮小．ブラウザの中だけで処理）
   async function loadFile(file, warnEls) {
     const say = (t) => warnEls.forEach((e) => { e.textContent = t; });
     say("");
     if (!file) return;
     if (!/^image\//.test(file.type)) { say("画像ファイルを選んでください．"); return; }
+    const my = ++pickSeq;                                  // 最後に選んだものを勝たせる（読み込み中の見本は捨てる）
     const url = URL.createObjectURL(file);
     try {
       const im = new Image();
       im.src = url;
       await im.decode();
+      if (my !== pickSeq) return;
       const sc = Math.min(1, 800 / Math.max(im.naturalWidth, im.naturalHeight));
       const w = Math.max(1, Math.round(im.naturalWidth * sc)), h = Math.max(1, Math.round(im.naturalHeight * sc));
       const c = mkCanvas(w, h), g = c.getContext("2d", { willReadFrequently: true });
@@ -724,6 +739,7 @@
       setImage("file", img.fileImg, file.name);
     } catch (e) {
       say("この画像は読み込めませんでした．jpg・png などの画像ファイルを選んでください．");
+      if (!img.work) sampleImage("school").then((im2) => setImage("school", im2, SAMPLES.school.name));   // 起動直後に鳥の読み込みを捨てていた場合の保険
     } finally { URL.revokeObjectURL(url); }
   }
 
@@ -748,7 +764,6 @@
   }
   // 見本を選ぶ．鳥が読み込めないとき（file:// で開いたときなど）は，画面を壊さず「校舎と空」に切り替える
   const BIRD_FAIL = "鳥の画像を読み込めませんでした．サーバー経由（https／localhost）で開いてください．";
-  let pickSeq = 0;
   async function pickSample(k) {
     const my = ++pickSeq;                                  // 読み込み中に別の見本が選ばれたら，古い方は捨てる
     const say = (t) => $$(".file-warn").forEach((e) => { e.textContent = t; });
@@ -759,8 +774,8 @@
       setImage(k, image, SAMPLES[k].name);
     } catch (err) {
       if (my !== pickSeq) return;
-      say(BIRD_FAIL);
-      if (!img.work) setImage("school", await sampleImage("school"), SAMPLES.school.name);
+      say(k === "bird" ? BIRD_FAIL : "見本の画像を表示できませんでした．");
+      if (!img.work && k === "bird") setImage("school", await sampleImage("school"), SAMPLES.school.name);
     }
   }
   $$(".src-seg").forEach((seg) => seg.addEventListener("click", (e) => {
@@ -789,7 +804,7 @@
       <input type="range" id="c-${c.k}-range" min="0" max="255" step="1" value="0" aria-label="${c.name}の値">
       <div class="reps">
         <label class="rep"><span>10進数（0〜255）</span><input type="number" id="c-${c.k}-num" min="0" max="255" step="1" value="0" inputmode="numeric"></label>
-        <div class="rep"><span>16進数（2桁）</span><span class="value" id="c-${c.k}-hex">00</span></div>
+        <div class="rep"><span>16進数（2文字）</span><span class="value" id="c-${c.k}-hex">00</span></div>
         <div class="rep"><span>2進数（8ビット）</span><span class="value" id="c-${c.k}-bin">0000 0000</span></div>
       </div>
     </div>`).join("");
@@ -821,10 +836,10 @@
   function renderMatch() {
     const t = col.target, out = $("#match-out");
     $("#target-swatch").style.background = t ? "#" + t : "";
-    if (!t) { out.className = "verdict"; out.textContent = "めざす色コードを入れると，いまの R・G・B から作った16進数と照合できます．"; return; }
+    if (!t) { out.className = "verdict"; out.textContent = "めざすカラーコードを入れると，いまの R・G・B から作った16進数と照合できます．"; return; }
     const ok = colHex() === t;
     out.className = "verdict " + (ok ? "ok" : "ng");
-    out.textContent = ok ? `○ 一致（いまの R・G・B から作った #${colHex()} が，めざす色コードと同じ）${col.viaHex ? "．カラーコードから入れた値です" : ""}` : `× まだ違う（いまの R・G・B から作った #${colHex()}）`;
+    out.textContent = ok ? `○ 一致（いまの R・G・B から作った #${colHex()} が，めざすカラーコードと同じ）${col.viaHex ? "．カラーコードから入れた値です" : ""}` : `× まだ違う（いまの R・G・B から作った #${colHex()}）`;
   }
   for (const c of CH) {
     $(`#c-${c.k}-range`).addEventListener("input", (e) => { col.viaHex = false; $("#c-warn").textContent = ""; col[c.k] = Number(e.target.value); renderColor(); });
@@ -841,7 +856,7 @@
     const h = parseHex(e.target.value);
     const w = $("#hex-warn");
     if (h) { w.textContent = ""; col.viaHex = true; setRGB(parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), "hex"); }
-    else w.textContent = "6桁の16進数（0〜9 と A〜F）で入れてください．";
+    else w.textContent = "6文字の16進数（0〜9 と A〜F）で入れてください．";
   });
   $("#hex-toggle").addEventListener("change", (e) => { $("#hex-direct").hidden = !e.target.checked; });
   $("#hex-in").addEventListener("blur", () => { $("#hex-in").value = colHex(); $("#hex-warn").textContent = ""; });
@@ -849,7 +864,7 @@
     const s = e.target.value.trim();
     col.target = parseHex(s);
     renderMatch();
-    if (s && !col.target) { const o = $("#match-out"); o.className = "verdict"; o.textContent = "めざす色コードは，6桁の16進数（0〜9 と A〜F）で入れてください．"; }
+    if (s && !col.target) { const o = $("#match-out"); o.className = "verdict"; o.textContent = "めざすカラーコードは，6文字の16進数（0〜9 と A〜F）で入れてください．"; }
   });
   $$("#color-presets .chip").forEach((b) => b.addEventListener("click", () => {
     const h = b.dataset.hex; $("#hex-warn").textContent = ""; $("#c-warn").textContent = ""; col.viaHex = false;
@@ -1005,9 +1020,9 @@
   //  解像度と階調
   // =====================================================================
   const RES = [32, 16, 8, 4, 2, 1];            // 元の 1/n（スライダーの右端が 1/1）
-  const TONES = [2, 4, 16, 256];
-  const HIDE_TONE = ["いちばん粗い", "粗い", "細かい", "いちばん細かい"];
-  const INIT = { A: { ri: 2, ti: 3 }, B: { ri: 5, ti: 1 } };
+  const TONES = [2, 4, 8, 16, 256];
+  const HIDE_TONE = ["いちばん粗い", "粗い", "ふつう", "細かい", "いちばん細かい"];
+  const INIT = { A: { ri: 2, ti: 4 }, B: { ri: 5, ti: 1 } };
   const res = { mode: "color", hide: false, A: { ...INIT.A }, B: { ...INIT.B }, last: {} };
   const qtabs = {};
   function qtab(n) {
@@ -1057,7 +1072,7 @@
   function sizeText(bytes) {
     if (bytes >= 1048576) return `約 ${trim2(bytes / 1048576)} MB`;
     if (bytes >= 1024) return `約 ${trim2(bytes / 1024)} KB`;
-    return `${bytes} B`;
+    return Number.isInteger(bytes) ? `${bytes} B` : `約 ${trim2(bytes)} B`;
   }
   function renderRes() {
     if ($("#panel-resolution").hidden || !img.work) return;
@@ -1066,7 +1081,7 @@
     applyHideChrome();
     $("#res-intro").innerHTML = hide
       ? "同じ写真を，2通りのしかたで粗くして並べます．<strong>区切りの細かさ</strong>と<strong>段階の細かさ</strong>を，別々に動かしてみよう．どちらを粗くすると，どう見えるか．数字は出していません．"
-      : "同じ写真を，A・B の2枚で並べて比べます．<strong>解像度</strong>（画素の数）と<strong>階調</strong>（色の段階数）を，別々に動かすと，見え方・画素の数・ビット数・データ量がどう変わるかを確かめよう．";
+      : "同じ写真を，A・B の2枚で並べて比べます．<strong>解像度</strong>（画素の細かさ．横の画素数 × 縦の画素数）と<strong>階調</strong>（グラデーション．いちばん明るい状態からいちばん暗い状態までを，何段階に分けるか）を，別々に動かすと，見え方・画素の数・ビット数・データ量がどう変わるかを確かめよう．";
     $("#res-note").textContent = hide ? "" :
       "縮小は，各マスの中心の画素の値をそのまま取り出しています（ぼかしません）．拡大表示は，画素のマスのまま引き伸ばしています．階調は，各色をいちばん近い段階の値に丸めています．";
     const out = {};
@@ -1083,9 +1098,13 @@
         const b = Math.log2(n);
         return `<button type="button" data-ti="${i}" aria-pressed="${i === st.ti}">${hide ? HIDE_TONE[i] : `${n}段階`}<small class="num-only">${b}ビット　2${sup(b)}</small></button>`;
       }).join("");
+      const cols = gray ? s.n : s.n * s.n * s.n;                       // 1画素あたりの色の数
       r("tonenote").textContent = gray
-        ? (s.n === 2 ? "輝度が2段階 ＝ 白黒（1画素1ビット）" : s.n === 256 ? "輝度が256段階 ＝ グレースケール（1画素8ビット）" : `輝度が${s.n}段階のグレー（1画素${s.bitsPer}ビット）`)
-        : `各色 ${s.bitsPer}ビット × 3色 ＝ 1画素 ${s.bpp}ビット`;
+        ? (s.n === 2 ? "白黒画像（2値画像）：2色（2階調）．1画素1ビット"
+          : s.n === 256 ? "グレースケール：256色（256階調）．1画素8ビット"
+          : `グレー（${s.n}段階）：${s.n}色（${s.n}階調）．1画素${s.bitsPer}ビット`)
+        : (s.n === 256 ? `フルカラー：256 × 256 × 256 色．各色 8ビット × 3色 ＝ 1画素 24ビット（24ビットフルカラー）`
+          : `各色 ${s.bitsPer}ビット × 3色 ＝ 1画素 ${s.bpp}ビット（${s.n} × ${s.n} × ${s.n} ＝ ${cols}色）`);
       r("facts").innerHTML = `
         <div><dt>横 × 縦の画素数</dt><dd>${s.w2} × ${s.h2}<small>${(s.w2 * s.h2)} 画素</small></dd></div>
         <div><dt>階調（段階数）</dt><dd>${s.n} 段階<small>${gray ? "輝度" : "各色"} ${s.bitsPer}ビット</small></dd></div>
@@ -1133,7 +1152,7 @@
       }
     }
     img.work = { w: W, h: H, data }; img.commits++; img.ver++;
-    res[key] = { ri: 5, ti: 3 };
+    res[key] = { ri: 5, ti: TONES.length - 1 };
     renderSourceUI(); renderRes();
   }
   $("#res-reset").addEventListener("click", () => {
