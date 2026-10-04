@@ -324,7 +324,8 @@
         <div class="field">
           <span class="field-label">見本の画像（「解像度と階調」と共通）</span>
           <div class="seg src-seg" role="group" aria-label="見本の画像">
-            <button type="button" data-src="school" aria-pressed="true">校舎と空</button>
+            <button type="button" data-src="bird" aria-pressed="true">鳥</button>
+            <button type="button" data-src="school" aria-pressed="false">校舎と空</button>
             <button type="button" data-src="gradient" aria-pressed="false">グラデーション</button>
             <button type="button" data-src="shapes" aria-pressed="false">図形</button>
             <button type="button" data-src="file" aria-pressed="false" hidden>自分の画像</button>
@@ -377,7 +378,8 @@
         <div class="field">
           <span class="field-label">見本の画像（「画素を調べる」と共通）</span>
           <div class="seg src-seg" role="group" aria-label="見本の画像">
-            <button type="button" data-src="school" aria-pressed="true">校舎と空</button>
+            <button type="button" data-src="bird" aria-pressed="true">鳥</button>
+            <button type="button" data-src="school" aria-pressed="false">校舎と空</button>
             <button type="button" data-src="gradient" aria-pressed="false">グラデーション</button>
             <button type="button" data-src="shapes" aria-pressed="false">図形</button>
             <button type="button" data-src="file" aria-pressed="false" hidden>自分の画像</button>
@@ -654,23 +656,36 @@
   }
 
   const SAMPLES = {
+    bird: { name: "鳥", src: "img/bird.png", pos: [271, 84] },      // 画像ファイル（同じフォルダ）．ほかの3つはコードで描く
     school: { name: "校舎と空", draw: drawSchool, pos: [118, 262] },
     gradient: { name: "グラデーション", draw: drawGradient, pos: [392, 142] },
     shapes: { name: "図形", draw: drawShapes, pos: [296, 180] },
   };
   const sampleCache = {};
-  function sampleImage(kind) {
+  // 画像ファイルの見本（鳥）：同じフォルダの画像を読み，画素の値を取り出す．file:// で開くと取り出せないことがある
+  async function loadBirdImage() {
+    const im = new Image();
+    im.src = SAMPLES.bird.src;
+    await im.decode();
+    const w = im.naturalWidth, h = im.naturalHeight;
+    const c = mkCanvas(w, h), g = c.getContext("2d", { willReadFrequently: true });
+    g.drawImage(im, 0, 0);
+    return { w, h, data: g.getImageData(0, 0, w, h).data };      // 汚染された canvas ではここで例外になる
+  }
+  async function sampleImage(kind) {
     if (!sampleCache[kind]) {
-      const c = mkCanvas(800, 600), g = c.getContext("2d", { willReadFrequently: true });
-      SAMPLES[kind].draw(g);
-      sampleCache[kind] = { w: 800, h: 600, data: g.getImageData(0, 0, 800, 600).data };
+      if (kind === "bird") sampleCache[kind] = await loadBirdImage();
+      else {
+        const c = mkCanvas(800, 600), g = c.getContext("2d", { willReadFrequently: true });
+        SAMPLES[kind].draw(g);
+        sampleCache[kind] = { w: 800, h: 600, data: g.getImageData(0, 0, 800, 600).data };
+      }
     }
     return sampleCache[kind];
   }
 
-  // 共通の元画像：orig（読み込んだ・描いたもの），work（「確定」を重ねたもの）
-  const img = { kind: "school", name: "校舎と空", orig: null, work: null, fileImg: null, commits: 0, ver: 0, pos: [118, 262] };
-  img.orig = img.work = sampleImage("school");
+  // 共通の元画像：orig（読み込んだ・描いたもの），work（「確定」を重ねたもの）．既定の鳥は読み込みが終わるまで null
+  const img = { kind: "bird", name: SAMPLES.bird.name, orig: null, work: null, fileImg: null, commits: 0, ver: 0, pos: SAMPLES.bird.pos.slice() };
   let workCv = null;
   function workCanvas() {
     if (!workCv || workCv._v !== img.ver) {
@@ -723,6 +738,7 @@
       const panel = bar.closest(".panel");
       const st = $(".src-status", panel);
       const hide = panel.id === "panel-resolution" && res.hide;
+      if (!img.work) { st.textContent = "画像を読み込んでいます…"; return; }
       let t = `いまの画像：${img.name}`;
       if (!hide) t += `（${img.work.w}×${img.work.h} 画素）`;
       if (img.commits) t += `．「確定」した画像を使っています（${img.commits}回）．`;
@@ -730,11 +746,28 @@
     });
     $("#res-reset").disabled = img.commits === 0;
   }
+  // 見本を選ぶ．鳥が読み込めないとき（file:// で開いたときなど）は，画面を壊さず「校舎と空」に切り替える
+  const BIRD_FAIL = "鳥の画像を読み込めませんでした．サーバー経由（https／localhost）で開いてください．";
+  let pickSeq = 0;
+  async function pickSample(k) {
+    const my = ++pickSeq;                                  // 読み込み中に別の見本が選ばれたら，古い方は捨てる
+    const say = (t) => $$(".file-warn").forEach((e) => { e.textContent = t; });
+    try {
+      const image = await sampleImage(k);
+      if (my !== pickSeq) return;
+      say("");
+      setImage(k, image, SAMPLES[k].name);
+    } catch (err) {
+      if (my !== pickSeq) return;
+      say(BIRD_FAIL);
+      if (!img.work) setImage("school", await sampleImage("school"), SAMPLES.school.name);
+    }
+  }
   $$(".src-seg").forEach((seg) => seg.addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
     const k = b.dataset.src;
     if (k === "file") { if (img.fileImg) setImage("file", img.fileImg, img.fileImg.name); }
-    else setImage(k, sampleImage(k), SAMPLES[k].name);
+    else pickSample(k);
   }));
   $$(".file-input").forEach((inp) => inp.addEventListener("change", async () => {
     await loadFile(inp.files[0], $$(".file-warn"));
@@ -855,15 +888,15 @@
   // =====================================================================
   //  画素を調べる
   // =====================================================================
-  const px = { x: 118, y: 262, sel: null, VW: 20, VH: 15, grid: true };
-  const pxWin = () => ({ vw: Math.min(px.VW, img.work.w), vh: Math.min(px.VH, img.work.h) });
+  const px = { x: 271, y: 84, sel: null, VW: 20, VH: 15, grid: true };
+  const pxWin = () => img.work ? ({ vw: Math.min(px.VW, img.work.w), vh: Math.min(px.VH, img.work.h) }) : ({ vw: px.VW, vh: px.VH });
   function pxClamp() {
     const { vw, vh } = pxWin();
     px.x = clamp(Math.round(px.x), 0, img.work.w - vw);
     px.y = clamp(Math.round(px.y), 0, img.work.h - vh);
   }
   function renderPixel() {
-    if ($("#panel-pixel").hidden) return;
+    if ($("#panel-pixel").hidden || !img.work) return;
     pxClamp();
     const { vw, vh } = pxWin();
     const cv = $("#pix-canvas"), dpr = window.devicePixelRatio || 1;
@@ -933,7 +966,7 @@
   $("#pix-canvas").addEventListener("pointercancel", () => { pxDrag = false; });
   $("#pix-canvas").addEventListener("keydown", (e) => {
     const m = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
-    if (!m) return;
+    if (!m || !img.work) return;
     e.preventDefault();
     const { vw, vh } = pxWin();
     const s = px.sel || { x: px.x + (vw >> 1), y: px.y + (vh >> 1) };
@@ -944,6 +977,7 @@
     renderPixel();
   });
   function pxOverviewTo(e) {
+    if (!img.work) return;
     const cv = $("#pix-overview"), r = cv.getBoundingClientRect(), { vw, vh } = pxWin();
     px.x = (e.clientX - r.left) / r.width * img.work.w - vw / 2;
     px.y = (e.clientY - r.top) / r.height * img.work.h - vh / 2;
@@ -1026,7 +1060,7 @@
     return `${bytes} B`;
   }
   function renderRes() {
-    if ($("#panel-resolution").hidden) return;
+    if ($("#panel-resolution").hidden || !img.work) return;
     const hide = res.hide, gray = res.mode === "gray";
     $("#panel-resolution").classList.toggle("hide-num", hide);
     applyHideChrome();
@@ -1422,6 +1456,7 @@
   }
   applyHash();
   window.addEventListener("hashchange", applyHash);
+  pickSample("bird");        // 既定の見本．読み込みが終わってから画素の画面を描く（失敗したら「校舎と空」）
 })();
 </script>
 </body>
