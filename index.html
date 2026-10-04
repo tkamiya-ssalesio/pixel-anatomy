@@ -1078,7 +1078,6 @@
     if ($("#panel-resolution").hidden || !img.work) return;
     const hide = res.hide, gray = res.mode === "gray";
     $("#panel-resolution").classList.toggle("hide-num", hide);
-    applyHideChrome();
     $("#res-intro").innerHTML = hide
       ? "同じ写真を，2通りのしかたで粗くして並べます．<strong>区切りの細かさ</strong>と<strong>段階の細かさ</strong>を，別々に動かしてみよう．どちらを粗くすると，どう見えるか．数字は出していません．"
       : "同じ写真を，A・B の2枚で並べて比べます．<strong>解像度</strong>（画素の細かさ．横の画素数 × 縦の画素数）と<strong>階調</strong>（グラデーション．いちばん明るい状態からいちばん暗い状態までを，何段階に分けるか）を，別々に動かすと，見え方・画素の数・ビット数・データ量がどう変わるかを確かめよう．";
@@ -1409,15 +1408,6 @@
   //  タブとURL
   // =====================================================================
   const tabs = $$(".tab");
-  const LEDE = "画像を，小さなマスのひとつひとつまで拡大して調べます．色のつくり方，マスの数，色の段階，データ量を変えると，写真がどう変わるか，確かめてみよう．";
-  const LEDE_HIDE = "画像を，小さなマスのひとつひとつまで拡大して調べます．色のつくり方，マスの数，色の段階，大きさを変えると，写真がどう変わるか，確かめてみよう．";
-  // 数字をかくす（導入用）のとき，画像を粗くする画面では「データ量」「解像度」「階調」の語を出さない
-  function applyHideChrome() {
-    const onRes = !$("#panel-resolution").hidden;
-    $("#lede").textContent = res.hide && onRes ? LEDE_HIDE : LEDE;
-    $("#tab-data").textContent = res.hide && onRes ? "大きさ" : "データ量";
-    $("#tab-resolution").textContent = res.hide ? "画像を粗くする" : "解像度と階調";
-  }
   function selectTab(tab, focus = true, hash) {
     tabs.forEach((t) => {
       const on = t === tab;
@@ -1425,7 +1415,6 @@
       t.tabIndex = on ? 0 : -1;
       $("#" + t.getAttribute("aria-controls")).hidden = !on;
     });
-    applyHideChrome();
     if (focus) tab.focus();
     history.replaceState(null, "", location.pathname + location.search + "#" + (hash || tab.dataset.hash));
     redraw();
